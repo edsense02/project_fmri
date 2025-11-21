@@ -36,7 +36,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 wandb.init(
     project="vqvae",
-    name=f'vqvae_lr{args.learning_rate}_beta{args.beta}',
+    name=f'vqvae_lr{args.learning_rate}_beta{args.beta}_n_embeddings{args.n_embeddings}',
     config=args.__dict__
 )
 
