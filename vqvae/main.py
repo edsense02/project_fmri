@@ -23,8 +23,8 @@ parser.add_argument("--embedding_dim", type=int, default=64)
 parser.add_argument("--n_embeddings", type=int, default=512)
 parser.add_argument("--beta", type=float, default=.25)
 parser.add_argument("--learning_rate", type=float, default=3e-4)
-parser.add_argument("--log_interval", type=int, default=50)
-parser.add_argument("--dataset",  type=str, default='CIFAR10')
+parser.add_argument("--log_interval", type=int, default=1000)
+parser.add_argument("--dataset",  type=str, default='BLOCK')
 
 # whether or not to save model
 parser.add_argument("-save", action="store_true")

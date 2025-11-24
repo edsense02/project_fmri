@@ -9,15 +9,15 @@ import numpy as np
 
 
 def load_block():
-    train_file_path = '/home/mingjie/mri230/train_data/train_data.npy'
-    val_file_path = '/home/mingjie/mri230/val_data/val_data.npy'
+    train_file_path = '../data/train/train_data.npy'
+    val_file_path = '../data/val/val_data.npy'
     train = BlockDataset(train_file_path)
     val = BlockDataset(val_file_path)
     return train, val
 
 def load_latent_block():
-    train_latent_path = '/home/mingjie/mri230/train_data/train_latent.npy'
-    val_latent_path = '/home/mingjie/mri230/val_data/val_latent.npy'
+    train_latent_path = '../data/train/train_data.npy'
+    val_latent_path = '../data/val/val_data.npy'
     train = LatentBlockDataset(train_latent_path)
     val = LatentBlockDataset(val_latent_path)
     return train, val
@@ -63,7 +63,8 @@ def readable_timestamp():
 
 
 def save_model_and_results(model, results, hyperparameters, timestamp):
-    SAVE_MODEL_PATH = '/home/mingjie/mri230/results'
+    save_dir = '../results'
+    os.makedirs(save_dir, exist_ok=True)
 
     results_to_save = {
         'model': model.state_dict(),
@@ -71,4 +72,4 @@ def save_model_and_results(model, results, hyperparameters, timestamp):
         'hyperparameters': hyperparameters
     }
     torch.save(results_to_save,
-               SAVE_MODEL_PATH + '/vqvae_data_' + timestamp + '.pth')
+               save_dir + '/vqvae_data_' + timestamp + '.pth')
