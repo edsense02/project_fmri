@@ -42,3 +42,7 @@ class VQVAE(nn.Module):
             assert False
 
         return embedding_loss, x_hat, perplexity, tokens
+    
+    
+    
+    

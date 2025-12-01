@@ -16,3 +16,4 @@ train_data/
 val_data/
 **/wandb*/
 /results
+transformer_checkpoints

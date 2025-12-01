@@ -62,8 +62,8 @@ def readable_timestamp():
         ' ', '_').replace(':', '_').lower()
 
 
-def save_model_and_results(model, results, hyperparameters, timestamp):
-    SAVE_MODEL_PATH = '/home/mingjie/mri230/results'
+def save_model_and_results(model, results, hyperparameters, run_name):
+    SAVE_MODEL_PATH = '/home/mingjie/mri230/vqvae_checkpoints/'
 
     results_to_save = {
         'model': model.state_dict(),
@@ -71,4 +71,4 @@ def save_model_and_results(model, results, hyperparameters, timestamp):
         'hyperparameters': hyperparameters
     }
     torch.save(results_to_save,
-               SAVE_MODEL_PATH + '/vqvae_data_' + timestamp + '.pth')
+               SAVE_MODEL_PATH + run_name + '.pth')
