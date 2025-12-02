@@ -14,10 +14,9 @@ import numpy as np
 import wandb
 import os
 
-MASK_ID = 64
 IGNORE_VAL = -1 
 
-def tokenize(checkpoint_name, h_dim=128, res_h_dim=64, n_res_layers=2, n_embeddings=64, embedding_dim=32, beta=0.25): 
+def tokenize(checkpoint_name, h_dim=128, res_h_dim=32, n_res_layers=2, n_embeddings=64, embedding_dim=16, beta=0.25): 
     '''
     Returns tokens for training, validation, and test. Each axial slice is 4096 tokens and each MRI sample has 193 slices
     '''
@@ -72,7 +71,7 @@ def tokenize(checkpoint_name, h_dim=128, res_h_dim=64, n_res_layers=2, n_embeddi
 
 def train(args): 
     
-    model_name = f'lr{args.lr}_epochs{args.epochs}_maskprob{args.mask_prob}_embdim{args.embedding_dim}'
+    model_name = f'newloss_epochs{args.epochs}_maskprob{int(args.mask_prob * 10)}_embdim{args.embedding_dim}'
     wandb.init(project="transformerMRI", name=model_name)
     
     context_slices = args.context_slices
@@ -243,6 +242,6 @@ if __name__ == "__main__":
     parser.add_argument('--mask_prob', type=float, default=0.25)
     parser.add_argument('--vocab_size', type=int, default=65)
     parser.add_argument('--embedding_dim', type=int, default=256)
-    parser.add_argument('--checkpoint_name', type=str, default='reshiddens64_n_embeddings64_embed_dim32.pth')
+    parser.add_argument('--checkpoint_name', type=str, default='newloss_reshiddens32_n_embeddings64_embed_dim16.pth')
     args = parser.parse_args()
     train(args)
