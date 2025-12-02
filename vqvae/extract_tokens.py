@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from models.vqvae import VQVAE
 
-model_path = "/home/mingjie/mri230/results/vqvae_data_tue_nov_11_21_09_30_2025.pth"
+model_path = "./results/vqvae_data_tue_nov_11_21_09_30_2025.pth"
 checkpoint = torch.load(model_path, map_location="cpu", weights_only=False)
 
 model = VQVAE(

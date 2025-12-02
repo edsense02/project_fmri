@@ -6,6 +6,7 @@ import time
 import os
 from datasets.block import BlockDataset, LatentBlockDataset
 import numpy as np
+from models.vqvae import VQVAE
 
 
 def load_block():
@@ -73,3 +74,52 @@ def save_model_and_results(model, results, hyperparameters, timestamp):
     }
     torch.save(results_to_save,
                save_dir + '/vqvae_data_' + timestamp + '.pth')
+
+
+
+def load_model(checkpoint, state: str = "eval"):
+    """
+    returns model with loaded checkpoint in train or eval mode
+
+    Inputs
+        checkpoint: str, Path to the .pth checkpoint file.
+        state: str, "eval" or "train". Default is "eval".
+    Returns
+        model: VQVAE model with weights loaded and moved to device.
+    """
+    # Load checkpoint
+    ckpt = torch.load(checkpoint, map_location="cpu", weights_only=False)
+
+    # Rebuild model from saved hyperparameters if available
+    hparams       = ckpt.get("hyperparameters", {})
+    h_dim         = hparams.get("n_hiddens", 128)
+    res_h_dim     = hparams.get("n_residual_hiddens", 32)
+    n_res_layers  = hparams.get("n_residual_layers", 2)
+    n_embeddings  = hparams.get("n_embeddings", 512)
+    embedding_dim = hparams.get("embedding_dim", 64)
+    beta          = hparams.get("beta", 0.25)
+
+    model = VQVAE(
+        h_dim=h_dim,
+        res_h_dim=res_h_dim,
+        n_res_layers=n_res_layers,
+        n_embeddings=n_embeddings,
+        embedding_dim=embedding_dim,
+        beta=beta,
+    )
+
+    model.load_state_dict(ckpt["model"])
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
+    if state == "train":
+        model.train()
+    elif state == "eval":
+        model.eval()
+    else:
+        raise ValueError("state must be 'train' or 'eval'")
+
+    return model
+
+
