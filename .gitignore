@@ -8,7 +8,7 @@ __pycache__/
 *.pt
 *.pth
 *.yaml
-
+*.DS_Store
 
 data/
 tokens/

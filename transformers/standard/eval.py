@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import importlib.util
 
-# ----- imports from transformers/standard/utils.py -----
+# imports from transformers/standard/utils.py 
 try:
     # when used as a package: python -m transformers.standard.eval
     from .utils import (
@@ -28,12 +28,12 @@ except ImportError:
         load_transformer,
     )
 
-# ----- set up paths to project root and vqvae folder -----
+## Set up paths to project root and vqvae folder 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.abspath(os.path.join(THIS_DIR, "..", ".."))  # project_fmri/
 VQVAE_DIR = os.path.join(BASE_DIR, "vqvae")
 
-# ----- load vqvae/utils.py as a separate module (vqvae_utils) -----
+# Load vqvae/utils.py as a separate module 
 if VQVAE_DIR not in sys.path:
     sys.path.insert(0, VQVAE_DIR)
 
@@ -42,7 +42,7 @@ vqvae_spec = importlib.util.spec_from_file_location("vqvae_utils", vqvae_utils_p
 vqvae_utils = importlib.util.module_from_spec(vqvae_spec)
 vqvae_spec.loader.exec_module(vqvae_utils)
 
-# ----- checkpoint paths -----
+# Checkpoint Paths
 vqvae_ckpt_path = os.path.join(
     BASE_DIR,
     "results",
