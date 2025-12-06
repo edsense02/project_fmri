@@ -1,10 +1,12 @@
 import numpy as np
-import random
 import torch
+import json
 from models.vqvae import VQVAE
 from masked_transformer import *
 from pipeline_utils import *
 import matplotlib.pyplot as plt
+from collections import defaultdict
+from skimage.metrics import structural_similarity as ssim
 
 VISUAL_MASK_ID = 63
 MASK_ID = 64
@@ -35,7 +37,7 @@ def crop_center(img, h=150, w=180):
 Class to visualize MRI slices
 '''
 class VisualizeSlicesMRI:
-    def __init__(self, vqvae_checkpoint, transformer_checkpoint, mask_prob):
+    def __init__(self, vqvae_checkpoint, transformer_checkpoint, mask_prob, subject):
         res_h_dim = 32
         embedding_dim = 16
         n_res_layers = 2
@@ -52,11 +54,10 @@ class VisualizeSlicesMRI:
         # select random subject and obtain quartile slices for visualization
         self.tokens_per_slice = 4096 
         self.tokens_per_subject = self.tokens_per_slice * 193
-        validation_subjects = 15
         self.first_q_idx = 193 // 4
         self.second_q_idx = 193 // 2
         self.third_q_idx = self.first_q_idx * 3
-        self.subject = random.randint(1, validation_subjects)
+        self.subject = subject - 1
         self.subject_tokens = self.val_token_seq[self.tokens_per_subject * self.subject : self.tokens_per_subject * (self.subject + 1)]
         
         # get mask and masked tokens for visualization 
@@ -74,7 +75,7 @@ class VisualizeSlicesMRI:
         self.transformer.eval()
 
         
-    def plot_nominal(self): 
+    def plot_nominal(self, plot=True): 
         first_q_slice_tokens = self.subject_tokens[self.tokens_per_slice * self.first_q_idx : self.tokens_per_slice * (self.first_q_idx + 1)]
         second_q_slice_tokens = self.subject_tokens[self.tokens_per_slice * self.second_q_idx : self.tokens_per_slice * (self.second_q_idx + 1)]
         third_q_slice_tokens = self.subject_tokens[self.tokens_per_slice * self.third_q_idx : self.tokens_per_slice * (self.third_q_idx + 1)]
@@ -83,25 +84,28 @@ class VisualizeSlicesMRI:
         second_q_gt_img = crop_center(decode_from_embeddings(self.vqvae, self.embedding_weight[second_q_slice_tokens]).squeeze().numpy())
         third_q_gt_img = crop_center(decode_from_embeddings(self.vqvae, self.embedding_weight[third_q_slice_tokens]).squeeze().numpy())
         
-        _, axes = plt.subplots(1, 3, figsize=(12, 4))
+        if plot: 
+            _, axes = plt.subplots(1, 3, figsize=(12, 4))
+            
+            axes[0].imshow(first_q_gt_img, cmap="gray")
+            axes[0].set_title("25% Axial Depth")
+            axes[0].axis("off")
+            
+            axes[1].imshow(second_q_gt_img, cmap="gray")
+            axes[1].set_title("50% Axial Depth")
+            axes[1].axis("off")
+            
+            axes[2].imshow(third_q_gt_img, cmap="gray")
+            axes[2].set_title("75% Axial Depth")
+            axes[2].axis("off")
         
-        axes[0].imshow(first_q_gt_img, cmap="gray")
-        axes[0].set_title("First Quartile")
-        axes[0].axis("off")
-        
-        axes[1].imshow(second_q_gt_img, cmap="gray")
-        axes[1].set_title("Second Quartile")
-        axes[1].axis("off")
-        
-        axes[2].imshow(third_q_gt_img, cmap="gray")
-        axes[2].set_title("Third Quartile")
-        axes[2].axis("off")
-        
-        plt.tight_layout()
-        plt.show()
+            plt.tight_layout()
+            plt.show()
+        else: 
+            return first_q_gt_img, second_q_gt_img, third_q_gt_img
         
         
-    def plot_masked(self):
+    def plot_masked(self, plot=True):
         first_q_slice_tokens_masked = self.subject_tokens_masked[self.tokens_per_slice * self.first_q_idx : self.tokens_per_slice * (self.first_q_idx + 1)]
         second_q_slice_tokens_masked = self.subject_tokens_masked[self.tokens_per_slice * self.second_q_idx : self.tokens_per_slice * (self.second_q_idx + 1)]
         third_q_slice_tokens_masked = self.subject_tokens_masked[self.tokens_per_slice * self.third_q_idx : self.tokens_per_slice * (self.third_q_idx + 1)]
@@ -110,25 +114,28 @@ class VisualizeSlicesMRI:
         second_q_gt_img_masked = crop_center(decode_from_embeddings(self.vqvae, self.embedding_weight[second_q_slice_tokens_masked]).squeeze().numpy())
         third_q_gt_img_masked = crop_center(decode_from_embeddings(self.vqvae, self.embedding_weight[third_q_slice_tokens_masked]).squeeze().numpy())
         
-        _, axes = plt.subplots(1, 3, figsize=(12, 4))
-        
-        axes[0].imshow(first_q_gt_img_masked, cmap="gray")
-        axes[0].set_title("First Quartile Masked")
-        axes[0].axis("off")
-        
-        axes[1].imshow(second_q_gt_img_masked, cmap="gray")
-        axes[1].set_title("Second Quartile Masked")
-        axes[1].axis("off")
-        
-        axes[2].imshow(third_q_gt_img_masked, cmap="gray")
-        axes[2].set_title("Third Quartile Masked")
-        axes[2].axis("off")
-        
-        plt.tight_layout()
-        plt.show()
+        if plot: 
+            _, axes = plt.subplots(1, 3, figsize=(12, 4))
+            
+            axes[0].imshow(first_q_gt_img_masked, cmap="gray")
+            axes[0].set_title("25% Axial Depth Masked")
+            axes[0].axis("off")
+            
+            axes[1].imshow(second_q_gt_img_masked, cmap="gray")
+            axes[1].set_title("50% Axial Depth Masked")
+            axes[1].axis("off")
+            
+            axes[2].imshow(third_q_gt_img_masked, cmap="gray")
+            axes[2].set_title("75% Axial Depth Masked")
+            axes[2].axis("off")
+            
+            plt.tight_layout()
+            plt.show()
+        else: 
+            return first_q_gt_img_masked, second_q_gt_img_masked, third_q_gt_img_masked
     
     
-    def plot_masked_predict(self): 
+    def plot_masked_predict(self, plot=True): 
         subject_tokens_masked_input = self.subject_tokens_masked.copy()
         subject_tokens_masked_input[self.mask] = MASK_ID
         
@@ -173,40 +180,66 @@ class VisualizeSlicesMRI:
         second_q_gt_img_pred = crop_center(decode_from_embeddings(self.vqvae, self.embedding_weight[second_q_slice]).squeeze().numpy())
         third_q_gt_img_pred = crop_center(decode_from_embeddings(self.vqvae, self.embedding_weight[third_q_slice]).squeeze().numpy())
         
-        _, axes = plt.subplots(1, 3, figsize=(12, 4))
-        
-        axes[0].imshow(first_q_gt_img_pred, cmap="gray")
-        axes[0].set_title("First Quartile Predicted")
-        axes[0].axis("off")
-        
-        axes[1].imshow(second_q_gt_img_pred, cmap="gray")
-        axes[1].set_title("Second Quartile Predicted")
-        axes[1].axis("off")
-        
-        axes[2].imshow(third_q_gt_img_pred, cmap="gray")
-        axes[2].set_title("Third Quartile Predicted")
-        axes[2].axis("off")
-        
-        plt.tight_layout()
-        plt.show()
+        if plot:
+            _, axes = plt.subplots(1, 3, figsize=(12, 4))
+            
+            axes[0].imshow(first_q_gt_img_pred, cmap="gray")
+            axes[0].set_title("25% Axial Depth Predicted")
+            axes[0].axis("off")
+            
+            axes[1].imshow(second_q_gt_img_pred, cmap="gray")
+            axes[1].set_title("50% Axial Depth Predicted")
+            axes[1].axis("off")
+            
+            axes[2].imshow(third_q_gt_img_pred, cmap="gray")
+            axes[2].set_title("75% Axial Depth Predicted")
+            axes[2].axis("off")
+            
+            plt.tight_layout()
+            plt.show()
+        else:
+            return first_q_gt_img_pred, second_q_gt_img_pred, third_q_gt_img_pred
     
     
-if __name__ == "__main__":
+def output_metrics(mask_prob):
     v_check = 'newloss_reshiddens32_n_embeddings64_embed_dim16.pth'
-    t_check = 'epochs100_maskprob25_embdim256.pth'
-    visualizer = VisualizeSlicesMRI(v_check, t_check, 0.25)
+    t_check = f'epochs100_maskprob{int(mask_prob * 100)}_embdim256.pth' 
     
-    print(f"train token range: {min(visualizer.train_token_seq)} to {max(visualizer.train_token_seq)}")
-    print(f"val token range: {min(visualizer.val_token_seq)} to {max(visualizer.val_token_seq)}")
-    print(f"test token range: {min(visualizer.test_token_seq)} to {max(visualizer.test_token_seq)}")
+    mse_dict = defaultdict(list)
+    ssim_dict = defaultdict(list)
+    
+    for subject in range(1, 16):
+        vis = VisualizeSlicesMRI(v_check, t_check, mask_prob, subject)
+        first_q_nominal, second_q_nominal, third_q_nominal = vis.plot_nominal(plot=False)
+        first_q_masked, second_q_masked, third_q_masked = vis.plot_masked(plot=False)
+        first_q_recon, second_q_recon, third_q_recon = vis.plot_masked_predict(plot=False)
+        
+        mse_dict["masked_first"].append(np.mean((first_q_nominal - first_q_masked) ** 2))
+        mse_dict["masked_second"].append(np.mean((second_q_nominal - second_q_masked) ** 2))
+        mse_dict["masked_third"].append(np.mean((third_q_nominal - third_q_masked) ** 2))
+        
+        mse_dict["recon_first"].append(np.mean((first_q_nominal - first_q_recon) ** 2))
+        mse_dict["recon_second"].append(np.mean((second_q_nominal - second_q_recon) ** 2))
+        mse_dict["recon_third"].append(np.mean((third_q_nominal - third_q_recon) ** 2))
+        
+        ssim_dict["masked_first"].append(ssim(first_q_nominal, first_q_masked, data_range=first_q_nominal.max() - first_q_masked.min()))
+        ssim_dict["masked_second"].append(ssim(second_q_nominal, second_q_masked, data_range=second_q_nominal.max() - second_q_masked.min()))
+        ssim_dict["masked_third"].append(ssim(third_q_nominal, third_q_masked, data_range=third_q_nominal.max() - third_q_masked.min()))
+        
+        ssim_dict["recon_first"].append(ssim(first_q_nominal, first_q_recon, data_range=first_q_nominal.max() - first_q_recon.min()))
+        ssim_dict["recon_second"].append(ssim(second_q_nominal, second_q_recon, data_range=second_q_nominal.max() - second_q_recon.min()))
+        ssim_dict["recon_third"].append(ssim(third_q_nominal, third_q_recon, data_range=third_q_nominal.max() - third_q_recon.min()))
+    
+    avg_mse = {key: float(np.mean(vals)) for key, vals in mse_dict.items()}
+    avg_ssim = {key: float(np.mean(vals)) for key, vals in ssim_dict.items()}
 
-    print(f"train unique tokens used: {len(np.unique(visualizer.train_token_seq))}")
-    print(f"val unique tokens used: {len(np.unique(visualizer.val_token_seq))}")
-    print(f"test unique tokens used: {len(np.unique(visualizer.test_token_seq))}")
-    
-    first_q_predictions, second_q_predictions, third_q_predictions = visualizer.masked_predict()
-    print(first_q_predictions.shape)
-    print(second_q_predictions.shape)
-    print(third_q_predictions.shape)
-    
-    
+    save_path = f"metrics_maskprob{int(mask_prob*100)}.json"
+    with open(save_path, "w") as f:
+        json.dump({"mse": avg_mse, "ssim": avg_ssim}, f, indent=4)
+        
+
+if __name__ == "__main__":
+    output_metrics(0.15)
+    output_metrics(0.25)
+    output_metrics(0.5)
+    output_metrics(0.75)

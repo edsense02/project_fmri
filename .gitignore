@@ -6,8 +6,9 @@ __pycache__/
 *.npy
 *.h5
 *.pt
-# *.pth
+*.pth
 *.yaml
+*.json
 
 
 data/
@@ -16,4 +17,3 @@ train_data/
 val_data/
 **/wandb*/
 /results
-vqvae_checkpoints/

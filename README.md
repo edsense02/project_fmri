@@ -2,15 +2,22 @@
 CS 230 project
 
 
-vqvae code is based off of https://github.com/MishaLaskin/vqvae/tree/master
+vqvae PyTorch architecture and training script is heavily based off https://github.com/MishaLaskin/vqvae/tree/master
 
 
-To train the VQ-VAE and log results to wandb run train_vqvae.py in the vqvae directory.
-A sample run looks like: 
+VQ-VAE 
 
-python train_vqvae.py --dataset BLOCK --learning_rate 1e-4 --n_updates 200000 -save
+To train the VQ-VAE and log results to wandb run train_vqvae.py in the vqvae directory. Adjust hyperparameters as needed
+via input arguments To save results you must run with the -save flag.
 
-to save results you must use the -save flag and the block.py within vqvae/datasets is
-currently configured so that you must se --dataset BLOCK for it to run properly. 
+VQ-VAE Architecture (decoder, encoder, quantizer) is found in vqvae/models
 
-run masked_transformer.py to run masked transformer implementation
+TRANSFORMER 
+To train the transformer and log results run masked_transformer.py in the vqvae directory (placed here for file-path convenience). 
+
+Transformer architecture and custom PyTorch dataset is found in vqvae/pipeline_utils.py
+
+VISUALIZER
+The code to decode masked and predicted tokens from experiments is found in vqvae/visualize.py. To run visualizations in a jupyter
+notebook check out vqvae/visualize.ipynb.
+
